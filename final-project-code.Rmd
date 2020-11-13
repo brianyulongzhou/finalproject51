@@ -1,0 +1,71 @@
+---
+title: "final project code"
+author: "Brian"
+date: "11/12/2020"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(stargazer)
+```
+
+
+## Importing & Cleaning the Data
+
+I need to merge two datasets but I don't have a common ID code - may have to go through  and check names. For now, just using the names of countries and it's worked ok.
+
+```{r, echo = FALSE}
+# Read the data.
+coldata <- read_csv("data/ICOW Colonial History 1.1/coldata110.csv") %>%
+  select(Name, IndDate, ColRuler, IndViol) %>%
+  rename(country = Name)
+
+mentaldisorders <- read_csv("data/GBD Data/Mental Disorder_Prevalence_Percent_IHME-GBD_2019/Rate_Prevalence_IHME-GBD_2019_DATA-aed48dc0-1.csv") %>%
+  select(location_name, val) %>%
+  rename(country = location_name)
+
+
+# Merge the datasets.
+newdata <- inner_join(coldata, mentaldisorders, by = "country") %>% 
+
+  # Remove countries that did not have a colonial ruler.
+  filter(ColRuler > 0) %>%
+    # Should I take out other Western countries?
+    # filter(country != "Canada",
+          #  country != "Australia",
+          #  country != "United States") %>%
+  
+  # Calculate the time since independence 
+  mutate(indep_date = as.integer(str_sub(IndDate, start = 1L, end = -3L)), 
+         years_indep = 2020 - indep_date)
+```
+
+## Data Analysis
+
+
+```{r, echo = FALSE}
+
+# Plot years since independence to rate of mental health disorders
+ggplot(newdata, aes(years_indep, val)) + 
+  geom_point() + 
+  geom_smooth(method = lm)
+
+# Fit linear regression models.
+fit_indep_date <- lm(val ~ years_indep, newdata) 
+fit_indep_viol <- lm(val ~ years_indep + IndViol, newdata) 
+
+```
+
+## Regression Table
+
+```{r, echo = FALSE}
+stargazer::stargazer(fit_indep_date, fit_indep_viol, tile = "Mental Health Burden Based on Independence Year and Violent Independence",
+                     covariate.labels = c("Years Since Independence", "Violence Independence"),
+                     dep.var.labels = "Rate of Mental Health Disorders",
+                     header = FALSE)
+```
+

@@ -1,0 +1,21 @@
+---
+title: "Final Project Milestone 1: Proposal"
+author: Brian Zhou
+output: pdf_document
+---
+
+
+## Proposal
+
+My final project seeks to address whether the circumstances around foreign occupation in a formerly colonized country affect mental health. Is there a "treatment effect" on the rates of depression, anxiety, and mental disorders based on whether a country was colonized? Does a longer period of independence from a former colonizer lead to better mental health outcomes? I have two hypotheses: 
+1) Countries that were never colonized (or perhaps acted as the colonizer) have lower rates of mental health disorders. This is likely because the initial trauma, wars, and violence associated with colonization would not be part of the collective history of the country, and thus would not negatively impact the mental health of these populations.
+2) Countries that have had longer periods of independence have lower rates of mental health disorders compared to countries that only recently gained their independence. I expect that having more time since independence creates more room for the traumas and violence of colonization to heal, and thus results in less mental health problems over time. 
+
+My sample combines data from the ICOW colonial history data set (which has a variety of data on the independence date, types of indenpendence, etc. for the history of all countries) and the Global Burden of Disease datasets that contain measurements of the prevalence of mental health disorders around the world. My unit of analysis is each country listed in the [ICOW colonial history data set](https://www.paulhensel.org/icowcol.html). This dataset includes the date of independence for each country, along with the type of independence and whether or not the country's independence involved a violent struggle. The explanatory variable of interest is the amount of time that passed since independence for a given country, which can be stored as a numerical variable calculated by the present date subtracted from the date of independence. My outcome variable is the rates of depression, anxiety, and other mental health disorders. I will use the [Global Burden of Disease datasets](http://www.healthdata.org/gbd/data) to find data on each country. If I observe greater rates of mental health disorders in countries that were colonized compared to those that were not, that will confirm my first hypothesis. In addition, if I find that the time since independence lowers mental health burden, then that will confirm my second hypothesis. When I run a regression on the number of years since independence and the rate of mental health disorders, a positive and significant coefficient would indicate support for my hypothesis. However, if there is a negative and/or insignificant coefficient as a result of the regression, that will disprove my hypothesis.
+
+```{r, echo = FALSE}
+  # Check how mental health rates may be complicated by the level of medical intervention in such countries... maybe there is a dataset evaluating that.
+
+```
+
+
