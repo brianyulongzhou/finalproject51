@@ -1,10 +1,12 @@
 ---
-title: "final project code"
+title: "Final Project Draft Analysis"
 author: "Brian"
 date: "11/12/2020"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -18,7 +20,7 @@ library(stargazer)
 
 I need to merge two datasets but I don't have a common ID code - may have to go through  and check names. For now, just using the names of countries and it's worked ok.
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, message = FALSE}
 # Read the data.
 coldata <- read_csv("data/ICOW Colonial History 1.1/coldata110.csv") %>%
   select(Name, IndDate, ColRuler, IndViol) %>%
@@ -46,26 +48,42 @@ newdata <- inner_join(coldata, mentaldisorders, by = "country") %>%
 
 ## Data Analysis
 
-
-```{r, echo = FALSE}
-
+```{r, echo = FALSE, message = FALSE}
 # Plot years since independence to rate of mental health disorders
-ggplot(newdata, aes(years_indep, val)) + 
+ggplot(newdata, aes(years_indep, val, label = country)) + 
   geom_point() + 
-  geom_smooth(method = lm)
+  geom_smooth(method = lm) + 
+  theme_bw() +
+  labs(x = "Years Since Independence",
+       y = "Rate of Mental Health Disorders (per 100K)",
+       title = "Mental Health Burden Based on Independence Year")
+  # geom_label(nudge_y = 50, size = 2)
 
 # Fit linear regression models.
 fit_indep_date <- lm(val ~ years_indep, newdata) 
 fit_indep_viol <- lm(val ~ years_indep + IndViol, newdata) 
 
 ```
+There appears to be a positive relationship between the number of years since independence and the rate of mental health disorders in a country. This is surprising and contradicts my initial hypothesis, considering my theory that having more time since independence creates more room for the traumas and violence of colonization to heal, and thus results in less mental health problems over time. 
+
+\newpage
 
 ## Regression Table
 
-```{r, echo = FALSE}
-stargazer::stargazer(fit_indep_date, fit_indep_viol, tile = "Mental Health Burden Based on Independence Year and Violent Independence",
-                     covariate.labels = c("Years Since Independence", "Violence Independence"),
+```{r, echo = FALSE, message = FALSE, results = 'asis'}
+stargazer::stargazer(fit_indep_date, fit_indep_viol, title = 
+    "Mental Health Burden Based on Independence Year and Violent Independence",
+                     covariate.labels = 
+                       c("Years Since Independence", "Violent Independence"),
                      dep.var.labels = "Rate of Mental Health Disorders",
                      header = FALSE)
-```
 
+```
+For each year since independence, the rate of mental health disorders per 100K population goes up by about 12-15 cases. The adjusted-R squared values indicate that the linear model is able to explain about 18% of the data.
+
+Interestingly, countries with a violent independence had a coefficient of -690, indicating that having a violent independence is correlated with a rate of 690 per 100K less mental health disorders today. This may potentially validate Frantz Fanon's theory about violence by the oppressor against the colonizer has the potential of being cathartic and restoring the humanity of the colonized, thus positively affecting mental health in the future.
+
+# Code
+
+```{r print-code, ref.label=knitr::all_labels(), echo = TRUE, eval=FALSE}
+```
