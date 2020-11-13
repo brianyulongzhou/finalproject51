@@ -15,7 +15,6 @@ library(tidyverse)
 library(stargazer)
 ```
 
-
 ## Importing & Cleaning the Data
 
 I need to merge two datasets but I don't have a common ID code - may have to go through  and check names. For now, just using the names of countries and it's worked ok.
@@ -82,6 +81,18 @@ stargazer::stargazer(fit_indep_date, fit_indep_viol, title =
 For each year since independence, the rate of mental health disorders per 100K population goes up by about 12-15 cases. The adjusted-R squared values indicate that the linear model is able to explain about 18% of the data.
 
 Interestingly, countries with a violent independence had a coefficient of -690, indicating that having a violent independence is correlated with a rate of 690 per 100K less mental health disorders today. This may potentially validate Frantz Fanon's theory about violence by the oppressor against the colonizer has the potential of being cathartic and restoring the humanity of the colonized, thus positively affecting mental health in the future.
+
+
+## Additional Ideas & Further Directions
+
+- Analyze the role of violence and whether or not that is correlated with less mental health burdenn (maybe go back to earlier years)
+- Subset the data based on different types of independence (decolonization in particular)
+- Cross check mental health rates for countries that were colonizers (or not colonized) -- maybe use that as a control, and then calculate the ATE.
+- Use data for schizophrenia and particular mental health disorders
+- Determine confidence intervals? How does that work for a line graph/ regression??
+- Check interpretation of regression tables.
+
+\newpage
 
 # Code
 
