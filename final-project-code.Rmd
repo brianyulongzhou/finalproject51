@@ -58,10 +58,6 @@ ggplot(newdata, aes(years_indep, val, label = country)) +
        title = "Mental Health Burden Based on Independence Year")
   # geom_label(nudge_y = 50, size = 2)
 
-# Fit linear regression models.
-fit_indep_date <- lm(val ~ years_indep, newdata) 
-fit_indep_viol <- lm(val ~ years_indep + IndViol, newdata) 
-
 ```
 There appears to be a positive relationship between the number of years since independence and the rate of mental health disorders in a country. This is surprising and contradicts my initial hypothesis, considering my theory that having more time since independence creates more room for the traumas and violence of colonization to heal, and thus results in less mental health problems over time. 
 
@@ -70,6 +66,10 @@ There appears to be a positive relationship between the number of years since in
 ## Regression Table
 
 ```{r, echo = FALSE, message = FALSE, results = 'asis'}
+# Fit linear regression models.
+fit_indep_date <- lm(val ~ years_indep, newdata) 
+fit_indep_viol <- lm(val ~ years_indep + IndViol, newdata) 
+
 stargazer::stargazer(fit_indep_date, fit_indep_viol, title = 
     "Mental Health Burden Based on Independence Year and Violent Independence",
                      covariate.labels = 
