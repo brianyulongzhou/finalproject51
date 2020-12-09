@@ -48,9 +48,9 @@ gbd_data <- right_join(financing, mentaldisorders, by = "location_id")
 # Merge GBD Data with colonial data set.
 newdata <- inner_join(coldata, gbd_data, by = "country") %>% 
 
-  # Remove countries that did not have a colonial ruler.
-  filter(ColRuler > 0) %>%
-    # Should I take out other Western countries?
+  # Categorize countries that did or did not have a colonial ruler.
+  mutate(colonized = ifelse(ColRuler > 0, "Colonized", "Free")) %>%
+    # Should I take out other "colonized" Western countries?
     # filter(country != "Canada",
           #  country != "Australia",
           #  country != "United States") %>%
@@ -59,11 +59,22 @@ newdata <- inner_join(coldata, gbd_data, by = "country") %>%
   mutate(indep_date = as.integer(str_sub(IndDate, start = 1L, end = -3L)), 
          years_indep = 2020 - indep_date)
 
+# Filter to just colonized countries 
+colonized <- newdata %>%
+  filter(colonized == 1)
+
 ```
 
-## Average Treatment Effect for Violent Independence vs. Non-violent Independence
-
+## Summary Statistics
 ```{r, echo = FALSE, message = FALSE}
+# Boxplot for Mental health rates in colonized and free countries.
+ggplot(newdata, aes(x = colonized, y = val)) + 
+  geom_boxplot() +
+  labs(title = "Distribution of Mental Health Burden in Countries With and Without Colonial History",
+       x = "Colonial Occupation Status",
+       y = "Rate of Mental Health Disorders (per 100K)")
+
+
 # Show summary table of mental health disorder rates, subsetted by
 # violent/nonviolent independence.
 
@@ -75,6 +86,11 @@ sum_table <- newdata %>%
 
 knitr::kable(sum_table, col.names = c("Type of Independence", "Number of Countries", "Rate of Mental Health Disorders (per 100K)"))
 
+```
+
+## Average Treatment Effect for Violent Independence vs. Non-violent Independence
+
+```{r, echo = FALSE, message = FALSE}
 
 # Calculate the observed average treatment effect for violence.
 viol_ate <- newdata %>%
@@ -115,14 +131,15 @@ ggplot(mapping = aes(viol_test)) +
 ## Data Analysis
 
 ```{r, echo = FALSE, message = FALSE}
+
 # Plot years since independence to rate of mental health disorders
-ggplot(newdata, aes(years_indep, val, label = country)) + 
+ggplot(colonized, aes(years_indep, val, label = country)) + 
   geom_point() + 
   geom_smooth(method = lm) + 
   theme_bw() +
   labs(x = "Years Since Independence",
        y = "Rate of Mental Health Disorders (per 100K)",
-       title = "Mental Health Burden Based on Independence Year") +
+       title = "Mental Health Burden Based on Independence Year") 
   # geom_label(nudge_y = 50, size = 2)
 
 ```
@@ -134,8 +151,8 @@ There appears to be a positive relationship between the number of years since in
 
 ```{r, echo = FALSE, message = FALSE, results = 'asis'}
 # Fit linear regression models.
-fit_indep_date <- lm(val ~ years_indep, newdata) 
-fit_indep_viol <- lm(val ~ years_indep + IndViol, newdata) 
+fit_indep_date <- lm(val ~ years_indep, colonized) 
+fit_indep_viol <- lm(val ~ years_indep + IndViol, colonized) 
 
 stargazer::stargazer(fit_indep_date, fit_indep_viol, title = 
     "Mental Health Burden Based on Independence Year and Violent Independence",
@@ -145,11 +162,18 @@ stargazer::stargazer(fit_indep_date, fit_indep_viol, title =
                      header = FALSE)
 
 # Fit multiple variable regression model.
-fit_multiple <- lm(val ~ years_indep + IndViol + the_per_gdp_mean + dah_total_ppp_mean + ghes_total_ppp_mean, newdata)
+fit_multiple <- lm(val ~ years_indep + IndViol + the_per_gdp_mean + dah_total_ppp_mean + ghes_total_ppp_mean, colonized)
+
+model = c(years_indep = "Years of Independence", 
+          IndViol = "Violent Independence", 
+          the_per_gdp_mean = "Total Health Spending per GDP", 
+          dah_total_ppp_mean = "Development Assistance for Health (thousands of 2019 PPP USD)",
+          ghes_total_ppp_mean = "Government Spending (thousands of 2019 PPP USD)")
 
 modelsummary::modelsummary(
   fit_multiple,
-  title = "Mental Health Disorders Regressed by Multiple Variables",                         
+  title = "Mental Health Disorders Regressed by Multiple Variables",   
+  coef_rename = model,
   gof_omit = "AIC|BIC|Log.Lik.|F",
   stars = TRUE)
 
