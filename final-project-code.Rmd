@@ -13,25 +13,40 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(stargazer)
+library(modelsummary)
 ```
 
 ## Importing & Cleaning the Data
 
-I need to merge two datasets but I don't have a common ID code - may have to go through  and check names. For now, just using the names of countries and it's worked ok.
+Merged datasets using naming.
 
 ```{r, echo = FALSE, message = FALSE}
 # Read the data.
-coldata <- read_csv("data/ICOW Colonial History 1.1/coldata110.csv") %>%
+coldata <- read_csv("data/ICOW Colonial History 1.1/coldata_renamed.csv") %>%
   select(Name, IndDate, ColRuler, IndViol) %>%
   rename(country = Name)
 
 mentaldisorders <- read_csv("data/GBD Data/Mental Disorder_Prevalence_Percent_IHME-GBD_2019/Rate_Prevalence_IHME-GBD_2019_DATA-aed48dc0-1.csv") %>%
-  select(location_name, val) %>%
+  select(location_id, location_name, val) %>%
   rename(country = location_name)
 
+financing <- read_csv("data/GBD Data/Global Health Financing/Dataset_IHME_RETROSPECTIVE_FINANCING_1995_2017_Y2020M07D09.CSV") %>%
+  select(location_name, location_id, year, the_total_ppp_mean, ghes_total_ppp_mean, oop_total_ppp_mean, dah_total_ppp_mean, the_per_cap_mean, the_per_gdp_mean) %>%
+  
+  # Filter to the most recent year: 2017.
+  filter(year == 2017)
 
-# Merge the datasets.
-newdata <- inner_join(coldata, mentaldisorders, by = "country") %>% 
+
+## Merge the datasets.
+
+# Some countries are missing in the "financing dataset" - keep the values in the
+# "mental disorders dataset with a right_join and use missing values for the
+# countries that are missing.
+gbd_data <- right_join(financing, mentaldisorders, by = "location_id")
+
+
+# Merge GBD Data with colonial data set.
+newdata <- inner_join(coldata, gbd_data, by = "country") %>% 
 
   # Remove countries that did not have a colonial ruler.
   filter(ColRuler > 0) %>%
@@ -43,6 +58,58 @@ newdata <- inner_join(coldata, mentaldisorders, by = "country") %>%
   # Calculate the time since independence 
   mutate(indep_date = as.integer(str_sub(IndDate, start = 1L, end = -3L)), 
          years_indep = 2020 - indep_date)
+
+```
+
+## Average Treatment Effect for Violent Independence vs. Non-violent Independence
+
+```{r, echo = FALSE, message = FALSE}
+# Show summary table of mental health disorder rates, subsetted by
+# violent/nonviolent independence.
+
+sum_table <- newdata %>%
+  mutate(IndViol = ifelse(IndViol == 1, "Violent", "Nonviolent")) %>%
+  group_by(IndViol) %>%
+  summarize(countries = n(),
+            rate = mean(val))
+
+knitr::kable(sum_table, col.names = c("Type of Independence", "Number of Countries", "Rate of Mental Health Disorders (per 100K)"))
+
+
+# Calculate the observed average treatment effect for violence.
+viol_ate <- newdata %>%
+  group_by(IndViol) %>%
+  summarize(mean = mean(val)) %>% 
+  pivot_wider(names_from = IndViol, values_from = mean) %>%
+  mutate(ate = `1` - `0`) %>%
+  pull(ate)
+
+# Create empty vector for simulation.
+nsims <- 1000
+viol_test <- rep(NA, nsims)
+
+# Create simulation for permutation test
+for (i in 1:nsims) {
+  
+  # Randomly reshuffle the treatment indicator (IndViol).
+  viol <- newdata %>%
+    mutate(shuf_treat = sample(IndViol))
+  
+  # Calculate average treatment effect.
+  control <- viol %>% filter(shuf_treat == 0)
+  treated <- viol %>% filter(shuf_treat == 1)
+  
+  # Store this particular ATE in a vector
+  viol_test[i] <- mean(treated$val, na.rm = TRUE) - 
+                            mean(control$val, na.rm = TRUE)
+}
+
+ggplot(mapping = aes(viol_test)) + 
+  geom_histogram() +
+  labs(title = "Permutation Test for Violent Independence",
+       x = "Difference in Means between Violent & Nonviolent Independence",
+       y = "Density") +
+  geom_vline(xintercept = viol_ate, color = "red")
 ```
 
 ## Data Analysis
@@ -55,7 +122,7 @@ ggplot(newdata, aes(years_indep, val, label = country)) +
   theme_bw() +
   labs(x = "Years Since Independence",
        y = "Rate of Mental Health Disorders (per 100K)",
-       title = "Mental Health Burden Based on Independence Year")
+       title = "Mental Health Burden Based on Independence Year") +
   # geom_label(nudge_y = 50, size = 2)
 
 ```
@@ -77,6 +144,15 @@ stargazer::stargazer(fit_indep_date, fit_indep_viol, title =
                      dep.var.labels = "Rate of Mental Health Disorders",
                      header = FALSE)
 
+# Fit multiple variable regression model.
+fit_multiple <- lm(val ~ years_indep + IndViol + the_per_gdp_mean + dah_total_ppp_mean + ghes_total_ppp_mean, newdata)
+
+modelsummary::modelsummary(
+  fit_multiple,
+  title = "Mental Health Disorders Regressed by Multiple Variables",                         
+  gof_omit = "AIC|BIC|Log.Lik.|F",
+  stars = TRUE)
+
 ```
 For each year since independence, the rate of mental health disorders per 100K population goes up by about 12-15 cases. The adjusted-R squared values indicate that the linear model is able to explain about 18% of the data.
 
@@ -85,12 +161,17 @@ Interestingly, countries with a violent independence had a coefficient of -690, 
 
 ## Additional Ideas & Further Directions
 
-- Analyze the role of violence and whether or not that is correlated with less mental health burdenn (maybe go back to earlier years)
+- Analyze the role of violence and whether or not that is correlated with less mental health burden (maybe go back to earlier years)
 - Subset the data based on different types of independence (decolonization in particular)
 - Cross check mental health rates for countries that were colonizers (or not colonized) -- maybe use that as a control, and then calculate the ATE.
 - Use data for schizophrenia and particular mental health disorders
 - Determine confidence intervals? How does that work for a line graph/ regression??
 - Check interpretation of regression tables.
+
+What are possible confounders? Additional variables to include?
+- Global health financing/ spending 
+- GDP of a country/ income level
+- Development assistance
 
 \newpage
 
