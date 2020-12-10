@@ -16,7 +16,7 @@ library(modelsummary)
 
 # Introduction & Background
 
-The histories of colonization and imperialism have profoundly shaped the modern world, leaving a far-reaching footprint in wide ranging fields such as global health. Various authors in postcolonial studies, medical anthropology, and cultural psychiatry have described the [historical trauma](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4001826/) and associated mental health disorders (particularly clinical depression, anxiety, suicide, alcoholism, and other ["postcolonial disorders"](https://www.researchgate.net/publication/279611909_Postcolonial_Disorders_Reflections_on_Subjectivity_in_the_Contemporary_World)) that are left in the wake of colonial occupation. While there has been a decades-long discussion of how the dehumanizing conditions and traumas of colonization are imprinted into the collective psyche of colonized populations (most notably beginning with [Frantz Fanon](http://anthropology.msu.edu/anp236-us16/files/2013/06/6.2-Schepper-Hughes-Colonial-War-Mental-Disorders.pdf)), few quantitative studies have been conducted on the relationship between colonial occupation, violent resistance, and the long-term prevalence of mental disorders. This final project for the Gov 51: Data Analysis and Politics class seeks to address whether the circumstances around colonization and independence in a formerly occupied country affect mental health. Do rates of depression, anxiety, and mental disorders vary based on whether a country was colonized? Does a longer period of independence from a former colonizer lead to better mental health outcomes? Can violent resistance against an oppressor actually restore the humanity of colonized peoples and their long term health, as Fanon suggested?
+The histories of colonization and imperialism have profoundly shaped the modern world, leaving a far-reaching footprint in wide ranging fields such as global health. Various authors in postcolonial studies, medical anthropology, and cultural psychiatry have described the [*historical trauma*](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4001826/) and associated mental health disorders (particularly clinical depression, anxiety, suicide, alcoholism, and other [*"postcolonial disorders"*](https://www.researchgate.net/publication/279611909_Postcolonial_Disorders_Reflections_on_Subjectivity_in_the_Contemporary_World)) that are left in the wake of colonial occupation. While there has been a decades-long discussion of how the dehumanizing conditions and traumas of colonization are imprinted into the collective psyche of colonized populations (most notably beginning with [*Frantz Fanon*](http://anthropology.msu.edu/anp236-us16/files/2013/06/6.2-Schepper-Hughes-Colonial-War-Mental-Disorders.pdf)), few quantitative studies have been conducted on the relationship between colonial occupation, violent resistance, and the long-term prevalence of mental disorders. This final project for the Gov 51: Data Analysis and Politics class seeks to address whether the circumstances around colonization and independence in a formerly occupied country affect mental health. Do rates of depression, anxiety, and mental disorders vary based on whether a country was colonized? Does a longer period of independence from a former colonizer lead to better mental health outcomes? Can violent resistance against an oppressor actually restore the humanity of colonized peoples and their long term health, as Fanon suggested?
 
 My hypothesis is two-fold: first, countries that were never colonized (or perhaps acted as the colonizer) are expected to have lower rates of mental  disorders. I speculate that colonized countries experienced particular trauma, wars, and violence associated with colonization, and thus the collective mental health of those countries would be negatively. Second, I hypothesize that countries that have had longer periods of independence have lower rates of mental health disorders compared to countries that only recently gained their independence. The likely reason would be that having more time since independence creates more opportunity for the traumas and violent legacy of colonization to heal, and thus results in less mental health problems over time. 
 
@@ -26,11 +26,11 @@ My analysis here will explore regressions between whether a country has been col
 # Data Sources & Overview
 
 ## Data Collection
-My sample combines data from 2 primary sources: the [Issue Correlates of War (ICOW) colonial history dataset](https://www.paulhensel.org/icowcol.html), which includes information on the independence date, types of independence, colonial rulers, and more for all countries; and the [Global Burden of Disease datasets](http://www.healthdata.org/gbd/data) that contain measurements of the prevalence of mental health disorders around the world. My unit of analysis is each country listed in the ICOW colonial history data set, each of which was categorized by Paul Hensel's research using historical information This data source was particularly chosen as one of the few datasets available for extrapolating several explanatory variables of interest, including the colonial occupation status of each country and specifically the amount of time that passed since independence, which was recalculated as a numerical variable with the present date subtracted from the date of independence. These variables, combined with specific information on the colonial ruler of each country and the type of independence (violent vs. nonviolent; decolonization, secession, formation, vs. partition) made the ICOW colonial history data set a powerful tool that could be easily cleaned and regressed alongside additional data on mental health disorders.
+My sample combines data from 2 primary sources: the [*Issue Correlates of War (ICOW) colonial history dataset*](https://www.paulhensel.org/icowcol.html), which includes information on the independence date, types of independence, colonial rulers, and more for all countries; and the [*Global Burden of Disease datasets*](http://www.healthdata.org/gbd/data) that contain measurements of the prevalence of mental health disorders around the world. My unit of analysis is each country listed in the ICOW colonial history data set, each of which was categorized by Paul Hensel's research using historical information This data source was particularly chosen as one of the few datasets available for extrapolating several explanatory variables of interest, including the colonial occupation status of each country and specifically the amount of time that passed since independence, which was recalculated as a numerical variable with the present date subtracted from the date of independence. These variables, combined with specific information on the colonial ruler of each country and the type of independence (violent vs. nonviolent; decolonization, secession, formation, vs. partition) made the ICOW colonial history data set a powerful tool that could be easily cleaned and regressed alongside additional data on mental health disorders.
 
-The remaining data was taken from publicly available data sources at the the Institute for Health Metrics and Evaluation (IHME), an independent population health research center that provides rigorous measurement of the world's most important health problems. Each year, IHME and its partners conduct a survey for the Global Burden of Disease study, which is the most comprehensive observational epidemiological study of over 100 diseases around the world. Specific data on the prevalence of mental health disorders (categorized by depression, schizophrenia, anxiety, etc.) is [readily downloadable](http://ghdx.healthdata.org/gbd-results-tool) and estimated based on complex, [algorithmic disease modeling softwares](https://www.guilles.website/wp-content/uploads/2017/11/Metaregression-AFlaxman.pdf). I chose to focus my outcome variable on the most recent 2019 data for a cross-sectional study of the prevalence of mental disorders, measured as a rate of the total number of cases per 100,000 people, because I hoped the category of mental health disorders would be wide-encompassing and robust enough to capture the overall mental health status of various countries. While using depression, schizophrenia, or more particular disease etiologies as the dependent variable could prove informative, the aggregate measurement for mental disorders includes different types of mental health issues and should hopefully be holistic enough to account for the collective psychic landscape of each country.
+The remaining data was taken from publicly available data sources at the the Institute for Health Metrics and Evaluation (IHME), an independent population health research center that provides rigorous measurement of the world's most important health problems. Each year, IHME and its partners conduct a survey for the Global Burden of Disease study, which is the most comprehensive observational epidemiological study of over 100 diseases around the world. Specific data on the prevalence of mental health disorders (categorized by depression, schizophrenia, anxiety, etc.) is readily [*downloadable*](http://ghdx.healthdata.org/gbd-results-tool) and estimated based on complex, algorithmic [*disease modeling softwares*](https://www.guilles.website/wp-content/uploads/2017/11/Metaregression-AFlaxman.pdf). I chose to focus my outcome variable on the most recent 2019 data for a cross-sectional study of the prevalence of mental disorders, measured as a rate of the total number of cases per 100,000 people, because I hoped the category of mental health disorders would be wide-encompassing and robust enough to capture the overall mental health status of various countries. While using depression, schizophrenia, or more particular disease etiologies as the dependent variable could prove informative, the aggregate measurement for mental disorders includes different types of mental health issues and should hopefully be holistic enough to account for the collective psychic landscape of each country.
 
-To control for possible confounders, I was also able to find estimates on total health spending per GDP, development assistance for public health expenditures, and other measures of global health financing in each country using additional IHME datasets from the [Global health Data Exchange](http://ghdx.healthdata.org/record/ihme-data/global-health-spending-1995-2017). These variables were re-scaled and chosen as possible controls in the regression, considering the obvious impact of financial resources on health outcomes. While broader measurements of a country's economic and health infrastructure, such as GDP or the Gini coefficient, were not included explicitly, I hope that the more specific variables on total health spending, particularly as a percentage of overall GDP, will implictly take into account other possible confounding variables in my regression.
+To control for possible confounders, I was also able to find estimates on total health spending per GDP, development assistance for public health expenditures, and other measures of global health financing in each country using additional IHME datasets from the [*Global Health Data Exchange*](http://ghdx.healthdata.org/record/ihme-data/global-health-spending-1995-2017). These variables were re-scaled and chosen as possible controls in the regression, considering the obvious impact of financial resources on health outcomes. While broader measurements of a country's economic and health infrastructure, such as GDP or the Gini coefficient, were not included explicitly, I hope that the more specific variables on total health spending, particularly as a percentage of overall GDP, will implictly take into account other possible confounding variables in my regression.
 
 ```{r, echo = FALSE, include = FALSE}
 # Import the dataset on colonial history.
@@ -45,7 +45,9 @@ mentaldisorders <- read_csv("data/GBD Data/Mental Disorder_Prevalence_Percent_IH
 
 # Import the global health financing data.
 financing <- read_csv("data/GBD Data/Global Health Financing/Dataset_IHME_RETROSPECTIVE_FINANCING_1995_2017_Y2020M07D09.CSV") %>%
-  select(location_name, location_id, year, the_total_ppp_mean, ghes_total_ppp_mean, oop_total_ppp_mean, dah_total_ppp_mean, the_per_cap_mean, the_per_gdp_mean) %>%
+  select(location_name, location_id, year, the_total_ppp_mean, 
+         ghes_total_ppp_mean, oop_total_ppp_mean, dah_total_ppp_mean, 
+         the_per_cap_mean, the_per_gdp_mean) %>%
   
   # Filter to the most recent year: 2017.
   filter(year == 2017) %>%
@@ -107,7 +109,7 @@ Below are a few graphical representations of the relevant independent and depend
 The majority of countries around the world have been colonized. England has the largest colonial footprint, with France, Spain, and Turkey the other predominant  colonial powers that colonized many countries.
 
 
-
+&nbsp;
 
 
 ```{r, echo = FALSE}
@@ -116,7 +118,8 @@ The majority of countries around the world have been colonized. England has the 
 # Barplot for colonized countries.
 ggplot(newdata, aes(x = colonized, fill = ColRuler)) + 
   geom_bar() +
-  labs(title = "Figure 1: Distribution of Colonized and Free States by Last Colonial Ruler",
+  labs(title = 
+"Figure 1: Distribution of Colonized and Free States by Last Colonial Ruler",
        x = "Colonial Occupation Status", 
        y = "Number of Countries") +
   theme_bw() +
@@ -128,8 +131,9 @@ ggplot(newdata, aes(x = colonized, fill = ColRuler)) +
 
 Most countries that were occupied by colonial rulers gained independence through some form of decolonization, the large majority of which were nonviolent processes. 
 
+&nbsp;
 
-
+&nbsp;
 ```{r, echo = FALSE}
 
 
@@ -155,6 +159,8 @@ newdata %>%
 
 ```
 
+&nbsp;
+
 
 To clarify according to the ICOW codebook, "decolonization" refers to an entity that  was a dependency ruled by a foreign power (ex: traditional colonies like India in the British empire); "formation" refers to an entity formed from other entities that have no direct analog (ex: the UK became independent with seceding from any other international actor);  "secession" refers to an entity that was part of another state before achieving independence (ex: Republics of Soviet Union leaving the USSR); and "partition" refers to an entity partitioned out of another state with the original state disappearing (ex: North and South Korea).
 
@@ -162,8 +168,9 @@ To clarify according to the ICOW codebook, "decolonization" refers to an entity 
 
 Of the 115 countries that experienced nonviolent independence, there is a lower average rate of mental health disorders.
 
-
+&nbsp;
 ```{r, echo = FALSE, message = FALSE}
+
 # Show summary table of mental health disorder rates, subsetted by
 # violent/nonviolent independence.
 sum_table <- newdata %>%
@@ -180,10 +187,11 @@ knitr::kable(sum_table, caption =
 ```
 
 
-
+&nbsp;
 
 Interestingly enough, countries that were formerly colonized have a slightly lower distribution of rates of mental health disorders. However, this could be due to higher reporting and awareness of mental health disorders in countries that were never colonized, which tend to be wealthier (and whiter) nations.
 
+&nbsp;
 
 
 ```{r, echo = FALSE, message = FALSE}
@@ -193,7 +201,8 @@ Interestingly enough, countries that were formerly colonized have a slightly low
 # Boxplot for Mental health rates in colonized and free countries.
 ggplot(newdata, aes(x = colonized, y = val, color = colonized)) + 
   geom_boxplot(color = c("blue", "indianred")) +
-  labs(title = "Figure 3: Distribution of Mental Health Burden in Countries With and Without Colonial History",
+  labs(title = "Figure 3: Distribution of Mental Health Burden in Countries 
+       With and Without Colonial History",
        x = "Colonial Occupation Status",
        y = "Rate of Mental Health Disorders (per 100K)") +
   theme_bw()
@@ -213,18 +222,25 @@ Unsurprisingly, the coefficient for violent independence was positive, but the s
 
 \newpage
 ```{r, echo = FALSE}
+
 # Fit regression based on colonization.
 fit_col <- lm(val ~ colonized, newdata)
 
 # Fit multivariable regression on colonization.
-fit_col_multiple <- lm(val ~ colonized + IndViol + the_per_gdp_mean + dah_total_ppp_mean + ghes_total_ppp_mean + oop_total_ppp_mean, newdata)
+fit_col_multiple <- lm(val ~ colonized + IndViol + the_per_gdp_mean 
+                       + dah_total_ppp_mean + ghes_total_ppp_mean 
+                       + oop_total_ppp_mean, newdata)
 
 model = c(colonizedFree = "Colonial Occupation Status", 
           IndViol = "Violent Independence", 
-          the_per_gdp_mean = "Total Health Spending per GDP (Expressed as Percent)", 
-          dah_total_ppp_mean = "Development Assistance for Health (Per 1 Billion USD - 2019 Purchasing Power Parity)",
-          ghes_total_ppp_mean = "Government Spending (Per 1 Billion USD - 2019 Purchasing Power Parity)",
-          oop_total_ppp_mean = "Out of Pocket Spending (Per 1 Billion USD - 2019 Purchasing Power Parity)")
+          the_per_gdp_mean = 
+            "Total Health Spending per GDP (Expressed as Percent)", 
+          dah_total_ppp_mean = 
+"Development Assistance for Health (Per 1 Billion USD - 2019 Purchasing Power Parity)",
+          ghes_total_ppp_mean = 
+"Government Spending (Per 1 Billion USD - 2019 Purchasing Power Parity)",
+          oop_total_ppp_mean = 
+"Out of Pocket Spending (Per 1 Billion USD - 2019 Purchasing Power Parity)")
 
 modelsummary::modelsummary(
   fit_col_multiple,
@@ -235,21 +251,29 @@ modelsummary::modelsummary(
 
 
 # Fit multiple variable regression model.
-fit_multiple <- lm(val ~ years_indep + IndViol + the_per_gdp_mean + dah_total_ppp_mean + ghes_total_ppp_mean + oop_total_ppp_mean, colonized)
+fit_multiple <- lm(val ~ years_indep + IndViol + the_per_gdp_mean + 
+                     dah_total_ppp_mean + ghes_total_ppp_mean + 
+                     oop_total_ppp_mean, colonized)
 
 model = c(years_indep = "Years of Independence", 
           IndViol = "Violent Independence", 
-          the_per_gdp_mean = "Total Health Spending per GDP (Expressed as Percent)", 
-          dah_total_ppp_mean = "Development Assistance for Health (Per 1 Billion USD - 2019 Purchasing Power Parity)",
-          ghes_total_ppp_mean = "Government Spending (Per 1 Billion USD - 2019 Purchasing Power Parity)",
-          oop_total_ppp_mean = "Out of Pocket Spending (Per 1 Billion USD - 2019 Purchasing Power Parity)")
+          the_per_gdp_mean = 
+            "Total Health Spending per GDP (Expressed as Percent)", 
+          dah_total_ppp_mean = 
+"Development Assistance for Health (Per 1 Billion USD - 2019 Purchasing Power Parity)",
+          ghes_total_ppp_mean = 
+"Government Spending (Per 1 Billion USD - 2019 Purchasing Power Parity)",
+          oop_total_ppp_mean = 
+"Out of Pocket Spending (Per 1 Billion USD - 2019 Purchasing Power Parity)")
 
 modelsummary::modelsummary(
   fit_multiple,
-  title = "Mental Disorders in Colonized Countries Regressed by Years of Independence and Other Variables",   
+  title = 
+"Mental Disorders in Colonized Countries Regressed by Years of Independence and Other Variables",   
   coef_rename = model,
   gof_omit = "AIC|BIC|Log.Lik.|F",
   stars = TRUE)
+
 ```
 
 \newpage 
@@ -266,6 +290,7 @@ The statistical significance and magnitude of the control variables are relative
 Figure 2 visualizes the distribution of mental health disorders across the number of years since independence. One thing to note is that the distribution of time since independence is skewed more towards the lower end; there are only a couple countries that have had more than 200 years of independence, which results in a large standard error range for the trend line towards the higher end of years since independence.
 
 ```{r, echo = FALSE, message = FALSE}
+
 # Plot years since independence to rate of mental health disorders
 ggplot(colonized, aes(years_indep, val, label = country)) + 
   geom_point(alpha = 0.5) + 
@@ -283,3 +308,11 @@ ggplot(colonized, aes(years_indep, val, label = country)) +
 # Conclusion
 
 Colonization produces long-term effects and structural issues, including for public health systems that must contend with legacies of historical trauma and strive for collective well-being. This study is one of the first to quantify the relationship between colonization, violent independence, and years since decolonization with the modern-day prevalence of mental disorders. My first hypothesis that countries that were never colonized fare better in mental health is supported by the statistically significant finding that colonization caused over 1000 additional cases of mental disorders per 100,000 people in 2019. Next, my second hypothesis that more time since independence would lead to lower rates of mental health disorders was disproven. My analysis actually shows that each year of independence actually increases the number of cases of mental health disorders by 12 per 100,000 people. Although both of the above coefficients in my regression are significant to p < 0.05, we should still be cautious about causal claims, considering possible confounders such as increases in population or awareness of mental health issues over time. Other assumptions about the accurate reporting and diagnoses of mental health disorders would also have to be made in order to validate a causal link between colonization and prevalence of mental disorders. Lastly, it is important to remember that there are challenges and subjective judgments that arise when trying to categorize complicated issues like colonial history into a quantitative dataset. It is difficult to judge which foreign power(s) to mark as the "colonizer" and determine an exact date of independence; for instance, both Morocco and Tunisia are coded as being independent for over 200 years, despite being occupied by France and experiencing a substantial push towards decolonization in the mid-1900s. Such intricacies are erased in forcing the twists and turns of history into a numerical data-frame, so further investigations should take into account different periods of occupation and colonization for each country, while comparing rates of mental health disorders overtime (particularly following the first few years after decolonization and independence). This study represents an important start to quantitative examinations of colonization and mental disorders, but future studies should build on these preliminary findings to investigate causal relationships and explore the impact of colonial empires on global health. 
+
+\newpage
+
+# Code
+
+```{r print-code, ref.label=knitr::all_labels(), echo = TRUE, eval=FALSE}
+```
+
