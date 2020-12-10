@@ -94,8 +94,7 @@ newdata <- inner_join(coldata, gbd_data, by = "country") %>%
 # Filter a subset for just colonized countries and also when the type of
 # independence was decolonization.
 colonized <- newdata %>%
-  filter(colonized == "Colonized") %>%
-  filter(IndType == 2)
+  filter(colonized == "Colonized") 
 
 ```
 
@@ -194,7 +193,7 @@ ggplot(newdata, aes(x = colonized, y = val, color = colonized)) +
 
 ## Colonization Is Associated With Higher Rates of Mental Health Disorders
 
-I first present regression estimates of the relationship between colonization and prevalence of mental disorders. Because the main variable of interest was whether or not a country had ever been colonized, each country was sorted into a binary variable for either having a previous foreign occupier (in most cases, a colonizing country) or not. A multiple variable regression model was used, with multiple control variables around global health financing included, in order to determine whether factors such violent independence or various financial considerations may affect mental health disorders. A subset of all the global health financing variables were chosen to represent various confounding forces: total health spending per GDP accounts for GDP and broader economic determinants; development assistance for health spending represents foreign investment and captures some element of international relations; government spending includes domestic investments; and out of pocket expenditures reflects individual payments. 
+I first present regression estimates of the relationship between colonization and prevalence of mental disorders. Because the main independent variable here is whether or not a country had ever been colonized, each country was sorted into a binary variable for either having a previous foreign occupier (in most cases, a colonizing country) or not. A multiple variable regression model was used, with multiple control variables around global health financing included, in order to determine whether factors such violent independence or various financial considerations may affect mental health disorders. A subset of all the global health financing variables were chosen to represent various confounding forces: total health spending per GDP accounts for GDP and broader economic determinants; development assistance for health spending represents foreign investment and captures some element of international relations; government spending includes domestic investments; and out of pocket expenditures reflects individual payments. 
 
 Table 2 suggests that a country that has been colonized has a higher likelihood of taking on a greater mental health burden. Countries that were subjected to colonial rulers have around 1020 more cases of mental disorders per 100,000 people compared to countries that were never colonized. The magnitude of this coefficient is statistically significant and substantial; considering the other control variables, each $1 Billion USD of Development Assistance for Health Expenditures (adjusted to Purchasing Power Parity in 2019) is associated with 788 less mental disorders, which would actually fall short of countering the number of mental health disorders produced by colonial occupation. Of course, this is a crude estimate, but the scale of colonial occupation cannot be ignored here, especially considering the likelihood of under-reporting for mental disorders in previously colonized countries.
 
@@ -216,16 +215,21 @@ model = c(colonizedFree = "Colonial Occupation Status",
 
 modelsummary::modelsummary(
   fit_col_multiple,
-  title = "Mental Health Disorders Regressed by Multiple Variables",   
+  title = "Relationship Between Colonization and Mental Disorders Regressed by Multiple Variables",   
   coef_rename = model,
   gof_omit = "AIC|BIC|Log.Lik.|F",
   stars = TRUE)
 
 ```
 
-## Relationship between Time Since Independence and Rate of Mental Health Disorders
+## More Time Since Independence Is Associated With Higher Rates of Mental Health Disorders
 
-Next, 
+Next, I explore the relationship between the number of years since independence and the rate of mental health disorders. I follow the same methods as in the first regression, but the main variable of interest is now continuous and represents the amount of time that passed since decolonization and independence. I include the same control variables as above, and the data has been subseted to remove countries that were never colonized.
+
+Table 3 shows that each additional year since independence has an effect of increasing mental health disorders by around 12 cases per 100,000 people. This is statistically significant to p < 0.01 and seems counter-intuitive, considering my theory that having more time since independence creates more room for the traumas of colonization to heal, and thus results in less mental health problems over time. While this obviously does not mean that colonized countries were better off under colonial rule, it does suggest that perhaps the colonial footprint in public health infrastructure and collective mental wellbeing lasts long past colonization. Of course, the slight increase in mental health disorders could also be due to increases in population and awareness in mental health over time, which may not be accounted for in this regression. 
+ 
+The statistical significance and magnitude of the control variables are relatively unchanged compared to the last regression. Notably, the coefficient for violent independence is negative in this regression, even accounting for the margin of error. Despite the effect of violent independence not being statistically significant, there is still some indication that a violent process of independence is associated with less mental health disorders. This would be consistent with several conjectures in postcolonial theory, including Frantz Fanon's argument that violence used against the colonizer is cathartic and helps the oppressed regain their humanity (and perhaps some of their long-term mental wellbeing).  
+
 ```{r, echo = FALSE, message = FALSE}
 # Fit multiple variable regression model.
 fit_multiple <- lm(val ~ years_indep + IndViol + the_per_gdp_mean + dah_total_ppp_mean + ghes_total_ppp_mean + oop_total_ppp_mean, colonized)
@@ -246,17 +250,18 @@ modelsummary::modelsummary(
 
 ```
 
-There appears to be a positive relationship between the number of years since independence and the rate of mental health disorders in a country. This is surprising and contradicts my initial hypothesis, considering my theory that having more time since independence creates more room for the traumas and violence of colonization to heal, and thus results in less mental health problems over time. 
+
+It is much easier to visualize the distribution of mental health disorders across the number of years since independence in this plot. One thing to note is that the distribution of time since independence is skewed more towards the lower end; there are only a couple countries that have had more than 200 years of independence, which results in a large standard error range for the trend line towards the higher end of years since independence.
 
 ```{r, echo = FALSE, message = FALSE}
 # Plot years since independence to rate of mental health disorders
 ggplot(colonized, aes(years_indep, val, label = country)) + 
-  geom_point() + 
-  geom_smooth(method = lm) + 
+  geom_point(alpha = 0.5) + 
+  geom_smooth(method = lm, color = "red") + 
   theme_bw() +
   labs(x = "Years Since Independence",
        y = "Rate of Mental Health Disorders (per 100K)",
-       title = "Mental Health Burden Based on Independence Year") 
+       title = "Figure 2: Mental Health Burden Based on Independence Year") 
   # geom_label(nudge_y = 50, size = 2)
 ```
 
@@ -267,7 +272,10 @@ ggplot(colonized, aes(years_indep, val, label = country)) +
 
 Limitations:
 1. not particular to definitions: Grouped secession, decolonization, and partiion together -- taking colonization as a variable of no colonial ruler
-
+      morocco and tunisia coded as over 200 years of independence: but occupied by France...and experienced significant decolonization movements in 1950s
+      
 Further directions - look at mental health disorder rates over time -- esppecially after decolonization period immediately
 
 When viewing this project, it is important to remember that there are challenges and subjective judgement calls that arise when trying to make something as complicated as colonial history fit into a tidy dataset. Sometimes, it is difficult to determine which foreign power to call the “colonizer” and to mark an exact year when a country became independent. My project defers to all of the judgement calls made in Paul Hensel’s dataset (see Sources for more information), but I encourage viewers to keep in mind that many intricacies are eliminated when forcing a very complicated history into a data frame, and to think critically about which countries have been listed under which colonizing powers and whether or not you would make the same categorizations.
+
+the slight increase in mental health disorders could also be due to increases in population and awareness in mental health over time, which may not be accounted for in this regression.
