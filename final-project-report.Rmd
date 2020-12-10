@@ -23,6 +23,78 @@ My hypothesis is two-fold: first, countries that were never colonized (or perhap
 
 # Data Sources & Overview
 
+My sample combines data from 2 primary sources: the [Issue Correlates of War (ICOW) colonial history dataset](https://www.paulhensel.org/icowcol.html), which includes information on the independence date, types of independence, colonial rulers, and more for all countries; and the [Global Burden of Disease datasets](http://www.healthdata.org/gbd/data) that contain measurements of the prevalence of mental health disorders around the world. My unit of analysis is each country listed in the ICOW colonial history data set. This data source was particularly chosen as one of the few datasets available for extrapolating several explanatory variables of interest, including the colonial occupation status of each country and specifically the amount of time that passed since independence, which was recalculated as a numerical variable with the present date subtracted from the date of independence. These variables, combined with specific information on the colonial ruler of each country and the type of independence (violent vs. nonviolent; decolonization, secession, formation, vs. partition) made the ICOW colonial history data set a powerful tool that could be easily cleaned and regressed alongside additional data on mental health disorders.
+
+I was also able to find estimates on total health spending and global health financing in each country using additional datasets from the [Global health Data Exchange](http://ghdx.healthdata.org/record/ihme-data/global-health-spending-1995-2017). 
+
+My outcome variable is the rates of depression, anxiety, and other mental health disorders. I will use the [Global Burden of Disease datasets](http://www.healthdata.org/gbd/data) to find data on each country. 
+
+```{r, echo = FALSE, include = FALSE}
+# Import the dataset on colonial history.
+coldata <- read_csv("data/ICOW Colonial History 1.1/coldata_renamed.csv") %>%
+  select(Name, IndDate, ColRuler, IndViol, IndType) %>%
+  rename(country = Name)
+
+# Import the mental health disorder rates dataset.
+mentaldisorders <- read_csv("data/GBD Data/Mental Disorder_Prevalence_Percent_IHME-GBD_2019/Rate_Prevalence_IHME-GBD_2019_DATA-aed48dc0-1.csv") %>%
+  select(location_id, location_name, val) %>%
+  rename(country = location_name)
+
+# Import the global health financing data.
+financing <- read_csv("data/GBD Data/Global Health Financing/Dataset_IHME_RETROSPECTIVE_FINANCING_1995_2017_Y2020M07D09.CSV") %>%
+  select(location_name, location_id, year, the_total_ppp_mean, ghes_total_ppp_mean, oop_total_ppp_mean, dah_total_ppp_mean, the_per_cap_mean, the_per_gdp_mean) %>%
+  
+  # Filter to the most recent year: 2017.
+  filter(year == 2017) %>%
+  
+  # Rescale monetary variables in billions of USD.
+  mutate(dah_total_ppp_mean = dah_total_ppp_mean / 1000000,
+          ghes_total_ppp_mean = ghes_total_ppp_mean / 1000000,
+          oop_total_ppp_mean = oop_total_ppp_mean / 1000000)
+
+
+## Merge the datasets.
+
+# Some countries are missing in the "financing dataset" - keep the values in the
+# "mental disorders dataset with a right_join and use missing values for the
+# countries that are missing.
+gbd_data <- right_join(financing, mentaldisorders, by = "location_id")
+
+
+# Merge GBD Data with colonial data set.
+newdata <- inner_join(coldata, gbd_data, by = "country") %>% 
+
+  # Categorize countries that did or did not have a colonial ruler.
+  mutate(colonized = ifelse(ColRuler > 0, "Colonized", "Free")) %>%
+    # Should I take out other "colonized" Western countries?
+    # filter(country != "Canada",
+          #  country != "Australia",
+          #  country != "United States") %>%
+  
+  # Calculate the time since independence 
+  mutate(indep_date = as.integer(str_sub(IndDate, start = 1L, end = -3L)), 
+         years_indep = 2020 - indep_date) %>%
+
+  # Rename variable for colonial ruler in terms of country.
+  mutate(ColRuler = case_when(
+    ColRuler == 230 ~ "Spain",
+    ColRuler == 210 ~ "Netherlands",
+    ColRuler == 220 ~ "France",
+    ColRuler == 2 ~ "United States", 
+    ColRuler == 640 ~ "Turkey",
+    ColRuler == 365 ~ "Russia",
+    ColRuler == 200 ~ "England",
+    ColRuler == 235 ~ "Portugal",
+    ColRuler == -9 ~ "No Colonizer")) %>%
+  mutate(ColRuler = ifelse(is.na(ColRuler) == TRUE, "Other", ColRuler))
+       
+# Filter a subset for just colonized countries and also when the type of
+# independence was decolonization.
+colonized <- newdata %>%
+  filter(colonized == "Colonized") %>%
+  filter(IndType == 2)
+
+```
 
 # Results
 
