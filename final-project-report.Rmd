@@ -1,0 +1,32 @@
+---
+title: "Final Project Report"
+author: "Brian Zhou"
+date: "12/9/2020"
+output:   
+  pdf_document: default
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(stargazer)
+library(modelsummary)
+```
+
+# Introduction & Background
+
+The histories of colonization and imperialism have profoundly shaped the modern world, leaving a far-reaching footprint in wide ranging fields such as global health. Various authors in postcolonial studies, medical anthropology, and cultural psychiatry have described the [historical trauma](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4001826/) and associated mental health disorders (particularly clinical depression, anxiety, suicide, alcoholism, and other ["postcolonial disorders"](https://www.researchgate.net/publication/279611909_Postcolonial_Disorders_Reflections_on_Subjectivity_in_the_Contemporary_World)) that are left in the wake of colonial occupation. While there has been a decades-long discussion of how the dehumanizing conditions and traumas of colonization are imprinted into the collective psyche of colonized populations (most notably beginning with [Frantz Fanon](http://anthropology.msu.edu/anp236-us16/files/2013/06/6.2-Schepper-Hughes-Colonial-War-Mental-Disorders.pdf)), few quantitative studies have been conducted on the relationship between colonial occupation, violent resistance, and the long-term prevalence of mental disorders. This final project for the Gov 51: Data Analysis and Politics class seeks to address whether the circumstances around colonization and independence in a formerly occupied country affect mental health. Do rates of depression, anxiety, and mental disorders vary based on whether a country was colonized? Does a longer period of independence from a former colonizer lead to better mental health outcomes? Can violent resistance against an oppressor actually restore the humanity of colonized peoples and their long term health, as Fanon suggested?
+
+My hypothesis is two-fold: first, countries that were never colonized (or perhaps acted as the colonizer) are expected to have lower rates of mental  disorders. I speculate that colonized countries experienced particular trauma, wars, and violence associated with colonization, and thus the collective mental health of those countries would be negatively. Second, I hypothesize that countries that have had longer periods of independence have lower rates of mental health disorders compared to countries that only recently gained their independence. The likely reason would be that having more time since independence creates more opportunity for the traumas and violent legacy of colonization to heal, and thus results in less mental health problems over time. My analysis here will explore regressions between whether a country has been colonized (colonial occupation status), how much time has passed since decolonization (years since independence), whether the process of independence for a colonized country was violent, how prevalent mental disorders are today, and other control variables. A positive, statistically significant coefficient for colonial occupation status as a variable for the rate of mental disorders would provide evidence for my first hypothesis, while a negative coefficient would prove that the opposite of my hypothesis is true. Similarly, a negative, statistically significant coefficient for time since independence in a regression for the rate of mental disorders would support my second hypothesis, while a positive coefficient would indicate that mental health disorders actually increase as more time since independence passes. For each regression, if p < 0.05 for a given coefficient and there is no statistically significant effect, I will not have sufficient evidence to reject the null  hypothesis that years since  independence and colonial occupation status do not affect the prevalence of mental health disorders.
+
+
+# Data Sources & Overview
+
+
+# Results
+
+
+# Discussion
+
+

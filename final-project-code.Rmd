@@ -14,27 +14,36 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(stargazer)
 library(modelsummary)
+
 ```
+
 
 ## Importing & Cleaning the Data
 
 Merged datasets using naming.
 
 ```{r, echo = FALSE, message = FALSE}
-# Read the data.
+# Import the dataset on colonial history.
 coldata <- read_csv("data/ICOW Colonial History 1.1/coldata_renamed.csv") %>%
-  select(Name, IndDate, ColRuler, IndViol) %>%
+  select(Name, IndDate, ColRuler, IndViol, IndType) %>%
   rename(country = Name)
 
+# Import the mental health disorder rates dataset.
 mentaldisorders <- read_csv("data/GBD Data/Mental Disorder_Prevalence_Percent_IHME-GBD_2019/Rate_Prevalence_IHME-GBD_2019_DATA-aed48dc0-1.csv") %>%
   select(location_id, location_name, val) %>%
   rename(country = location_name)
 
+# Import the global health financing data.
 financing <- read_csv("data/GBD Data/Global Health Financing/Dataset_IHME_RETROSPECTIVE_FINANCING_1995_2017_Y2020M07D09.CSV") %>%
   select(location_name, location_id, year, the_total_ppp_mean, ghes_total_ppp_mean, oop_total_ppp_mean, dah_total_ppp_mean, the_per_cap_mean, the_per_gdp_mean) %>%
   
   # Filter to the most recent year: 2017.
-  filter(year == 2017)
+  filter(year == 2017) %>%
+  
+  # Rescale monetary variables in billions of USD.
+  mutate(dah_total_ppp_mean = dah_total_ppp_mean / 1000000,
+          ghes_total_ppp_mean = ghes_total_ppp_mean / 1000000,
+          oop_total_ppp_mean = oop_total_ppp_mean / 1000000)
 
 
 ## Merge the datasets.
@@ -57,36 +66,105 @@ newdata <- inner_join(coldata, gbd_data, by = "country") %>%
   
   # Calculate the time since independence 
   mutate(indep_date = as.integer(str_sub(IndDate, start = 1L, end = -3L)), 
-         years_indep = 2020 - indep_date)
+         years_indep = 2020 - indep_date) %>%
 
-# Filter to just colonized countries 
+  # Rename variable for colonial ruler in terms of country.
+  mutate(ColRuler = case_when(
+    ColRuler == 230 ~ "Spain",
+    ColRuler == 210 ~ "Netherlands",
+    ColRuler == 220 ~ "France",
+    ColRuler == 2 ~ "United States", 
+    ColRuler == 640 ~ "Turkey",
+    ColRuler == 365 ~ "Russia",
+    ColRuler == 200 ~ "England",
+    ColRuler == 235 ~ "Portugal",
+    ColRuler == -9 ~ "No Colonizer")) %>%
+  mutate(ColRuler = ifelse(is.na(ColRuler) == TRUE, "Other", ColRuler))
+       
+# Filter a subset for just colonized countries and also when the type of
+# independence was decolonization.
 colonized <- newdata %>%
-  filter(colonized == 1)
+  filter(colonized == "Colonized") %>%
+  filter(IndType == 2)
 
 ```
 
-## Summary Statistics
-```{r, echo = FALSE, message = FALSE}
-# Boxplot for Mental health rates in colonized and free countries.
-ggplot(newdata, aes(x = colonized, y = val)) + 
-  geom_boxplot() +
-  labs(title = "Distribution of Mental Health Burden in Countries With and Without Colonial History",
-       x = "Colonial Occupation Status",
-       y = "Rate of Mental Health Disorders (per 100K)")
+## Summary Statistics: measure center (mean/median) and spread (distribution - range, stdev)
+include bar chart for binary viables
 
+```{r, echo = FALSE, message = FALSE}
+# Barplot for colonized countries.
+ggplot(newdata, aes(x = colonized, fill = ColRuler)) + 
+  geom_bar() +
+  labs(title = "Distribution of Colonized and Free States by Last Colonial Ruler",
+       x = "Colonial Occupation Status", 
+       y = "Number of Countries") +
+  theme_bw() +
+  guides(fill = guide_legend(title = "Last Colonial Ruler")) +
+  scale_fill_brewer(palette = "RdYlBu")
+
+# Barplot for types of independence.
+newdata %>%
+  mutate(IndViol = ifelse(IndViol == 1, "Violent", "Nonviolent")) %>%
+  mutate(IndType = case_when(
+      IndType == 1 ~ "Formation",
+      IndType == 2 ~ "Decolonization",
+      IndType == 3 ~ "Secession",
+      IndType == 4 ~ "Partition"
+  )) %>%
+  ggplot(aes(x = IndType, fill = IndViol)) + 
+    geom_bar() +
+    labs(title = "Types of Independence Across Countries",
+         x = "Type of Independence",
+         y = "Number of Countries") +
+    guides(fill = guide_legend(title = "Violent Independence")) +
+    theme_bw()
+    
 
 # Show summary table of mental health disorder rates, subsetted by
 # violent/nonviolent independence.
-
 sum_table <- newdata %>%
   mutate(IndViol = ifelse(IndViol == 1, "Violent", "Nonviolent")) %>%
   group_by(IndViol) %>%
   summarize(countries = n(),
             rate = mean(val))
 
-knitr::kable(sum_table, col.names = c("Type of Independence", "Number of Countries", "Rate of Mental Health Disorders (per 100K)"))
+knitr::kable(sum_table, col.names = c("Type of Independence", "Number of Countries", "Average Rate of Mental Health Disorders (per 100K)"))
+
+# Boxplot for Mental health rates in colonized and free countries.
+ggplot(newdata, aes(x = colonized, y = val, color = colonized)) + 
+  geom_boxplot(color = c("blue", "indianred")) +
+  labs(title = "Distribution of Mental Health Burden in Countries With and Without Colonial History",
+       x = "Colonial Occupation Status",
+       y = "Rate of Mental Health Disorders (per 100K)") +
+  theme_bw()
 
 ```
+
+## Effect of Colonization on Rate of Mental Health Disorders
+```{r}
+# Fit regression based on colonization.
+fit_col <- lm(val ~ colonized, newdata)
+
+# Fit multivariable regression on colonization.
+fit_col_multiple <- lm(val ~ colonized + IndViol + the_per_gdp_mean + dah_total_ppp_mean + ghes_total_ppp_mean + oop_total_ppp_mean, newdata)
+
+model = c(colonizedFree = "Colonial Occupation Status", 
+          IndViol = "Violent Independence", 
+          the_per_gdp_mean = "Total Health Spending per GDP (Expressed as Percent)", 
+          dah_total_ppp_mean = "Development Assistance for Health (Per 1 Billion USD - 2019 Purchasing Power Parity)",
+          ghes_total_ppp_mean = "Government Spending (Per 1 Billion USD - 2019 Purchasing Power Parity)",
+          oop_total_ppp_mean = "Out of Pocket Spending (Per 1 Billion USD - 2019 Purchasing Power Parity)")
+
+modelsummary::modelsummary(
+  fit_col_multiple,
+  title = "Mental Health Disorders Regressed by Multiple Variables",   
+  coef_rename = model,
+  gof_omit = "AIC|BIC|Log.Lik.|F",
+  stars = TRUE)
+
+```
+
 
 ## Average Treatment Effect for Violent Independence vs. Non-violent Independence
 
@@ -99,6 +177,11 @@ viol_ate <- newdata %>%
   pivot_wider(names_from = IndViol, values_from = mean) %>%
   mutate(ate = `1` - `0`) %>%
   pull(ate)
+
+```
+
+# Permutation Test
+```{r, echo = FALSE}
 
 # Create empty vector for simulation.
 nsims <- 1000
@@ -126,6 +209,7 @@ ggplot(mapping = aes(viol_test)) +
        x = "Difference in Means between Violent & Nonviolent Independence",
        y = "Density") +
   geom_vline(xintercept = viol_ate, color = "red")
+  
 ```
 
 ## Data Analysis
@@ -162,17 +246,18 @@ stargazer::stargazer(fit_indep_date, fit_indep_viol, title =
                      header = FALSE)
 
 # Fit multiple variable regression model.
-fit_multiple <- lm(val ~ years_indep + IndViol + the_per_gdp_mean + dah_total_ppp_mean + ghes_total_ppp_mean, colonized)
+fit_multiple <- lm(val ~ years_indep + IndViol + the_per_gdp_mean + dah_total_ppp_mean + ghes_total_ppp_mean + oop_total_ppp_mean, colonized)
 
 model = c(years_indep = "Years of Independence", 
           IndViol = "Violent Independence", 
-          the_per_gdp_mean = "Total Health Spending per GDP", 
-          dah_total_ppp_mean = "Development Assistance for Health (thousands of 2019 PPP USD)",
-          ghes_total_ppp_mean = "Government Spending (thousands of 2019 PPP USD)")
+          the_per_gdp_mean = "Total Health Spending per GDP (Expressed as Percent)", 
+          dah_total_ppp_mean = "Development Assistance for Health (Per 1 Billion USD - 2019 Purchasing Power Parity)",
+          ghes_total_ppp_mean = "Government Spending (Per 1 Billion USD - 2019 Purchasing Power Parity)",
+          oop_total_ppp_mean = "Out of Pocket Spending (Per 1 Billion USD - 2019 Purchasing Power Parity)")
 
 modelsummary::modelsummary(
   fit_multiple,
-  title = "Mental Health Disorders Regressed by Multiple Variables",   
+  title = "Mental Disorders in Colonized Countries Regressed by Years of Independence and Other Variables",   
   coef_rename = model,
   gof_omit = "AIC|BIC|Log.Lik.|F",
   stars = TRUE)
