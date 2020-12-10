@@ -2,9 +2,9 @@
 title: "Final Project Report"
 author: "Brian Zhou"
 date: "12/9/2020"
-output:   
+output:
   pdf_document: default
-
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -23,6 +23,7 @@ My hypothesis is two-fold: first, countries that were never colonized (or perhap
 
 # Data Sources & Overview
 
+## Data Collection
 My sample combines data from 2 primary sources: the [Issue Correlates of War (ICOW) colonial history dataset](https://www.paulhensel.org/icowcol.html), which includes information on the independence date, types of independence, colonial rulers, and more for all countries; and the [Global Burden of Disease datasets](http://www.healthdata.org/gbd/data) that contain measurements of the prevalence of mental health disorders around the world. My unit of analysis is each country listed in the ICOW colonial history data set, an important contribution of Paul Hensel's research at the University of North Texas. This data source was particularly chosen as one of the few datasets available for extrapolating several explanatory variables of interest, including the colonial occupation status of each country and specifically the amount of time that passed since independence, which was recalculated as a numerical variable with the present date subtracted from the date of independence. These variables, combined with specific information on the colonial ruler of each country and the type of independence (violent vs. nonviolent; decolonization, secession, formation, vs. partition) made the ICOW colonial history data set a powerful tool that could be easily cleaned and regressed alongside additional data on mental health disorders.
 
 The remaining data was taken from publicly available data sources at the the Institute for Health Metrics and Evaluation (IHME), an independent population health research center that provides rigorous measurement of the world's most important health problems. Each year, IHME and its partners collaborate on the Global Burden of Disease study, which is the most comprehensive observational epidemiological study of over 100 diseases around the world. Specific data on the prevalence of mental health disorders (categorized by depression, schizophrenia, anxiety, etc.) is [readily downloadable](http://ghdx.healthdata.org/gbd-results-tool) and estimated based on complex, [algorithmic disease modeling softwares](https://www.guilles.website/wp-content/uploads/2017/11/Metaregression-AFlaxman.pdf). I chose to focus my outcome variable on the most recent 2019 data for the prevalence of mental disorders, measured as a rate of the total number of cases per 100,000 people, because I hoped the category of mental health disorders would be wide-encompassing and robust enough to capture the overall mental health status of various countries. While using depression, schizophrenia, or more particular disease etiologies as the dependent variable could prove informative, the aggregate measurement for mental disorders includes different types of mental health issues and should hopefully be holistic enough to account for the collective psychic landscape of each country.
@@ -94,6 +95,74 @@ colonized <- newdata %>%
   filter(colonized == "Colonized") %>%
   filter(IndType == 2)
 
+```
+
+## Summary Statistics of Relevant Variables
+
+Below are a few graphical representations of the relevant independent and dependent variables to contextualize the distribution of data in the merged dataframe:
+
+The majority of countries around the world have been colonized. England has the largest colonial footprint, with France, Spain, and Turkey the other predominant  colonial powers that colonized many countries.
+
+```{r, echo = FALSE}
+# Barplot for colonized countries.
+ggplot(newdata, aes(x = colonized, fill = ColRuler)) + 
+  geom_bar() +
+  labs(title = "Figure 1: Distribution of Colonized and Free States by Last Colonial Ruler",
+       x = "Colonial Occupation Status", 
+       y = "Number of Countries") +
+  theme_bw() +
+  guides(fill = guide_legend(title = "Last Colonial Ruler")) +
+  scale_fill_brewer(palette = "RdYlBu")
+```
+
+Most countries that were occupied by colonial rulers gained independence through some form of decolonization, the large majority of which were nonviolent processes. To clarify according to the ICOW codebook, "decolonization" refers to an entity that  was a dependency ruled by a foreign power (ex: traditional colonies like India in the British empire); "formation" refers to an entity formed from other entities that have no direct analog (ex: the UK became independent with seceding from any other international actor);  "secession" refers to an entity that was part of another state before achieving independence (ex: Republics of Soviet Union leaving the USSR); and "partition" refers to an entity partitioned out of another state with the original state disappearing (ex: North and South Korea).
+
+```{r, echo = FALSE}
+# Barplot for types of independence.
+newdata %>%
+  mutate(IndViol = ifelse(IndViol == 1, "Violent", "Nonviolent")) %>%
+  mutate(IndType = case_when(
+      IndType == 1 ~ "Formation",
+      IndType == 2 ~ "Decolonization",
+      IndType == 3 ~ "Secession",
+      IndType == 4 ~ "Partition"
+  )) %>%
+  ggplot(aes(x = IndType, fill = IndViol)) + 
+    geom_bar() +
+    labs(title = "Figure 2: Types of Independence Across Countries",
+         x = "Type of Independence",
+         y = "Number of Countries") +
+    guides(fill = guide_legend(title = "Violent Independence")) +
+    theme_bw()
+```
+
+
+Of the 115 countries that experienced nonviolent independence, there is a lower average rate of mental health disorders.
+```{r, echo = FALSE, message = FALSE}
+# Show summary table of mental health disorder rates, subsetted by
+# violent/nonviolent independence.
+sum_table <- newdata %>%
+  mutate(IndViol = ifelse(IndViol == 1, "Violent", "Nonviolent")) %>%
+  group_by(IndViol) %>%
+  summarize(countries = n(),
+            rate = mean(val))
+
+knitr::kable(sum_table, caption = 
+                  "Table 1: Summary of Countries for Types of Independence",
+             col.names = 
+               c("Type of Independence", "Number of Countries", 
+                 "Average Rate of Mental Health Disorders (per 100K)"))
+```
+
+Interestingly enough, countries that were formerly colonized have a slightly lower distribution of rates of mental health disorders. However, this could be due to higher reporting and awareness of mental health disorders in countries that were never colonized, which tend to be wealthier (and whiter) nations.
+```{r, echo = FALSE, message = FALSE}
+# Boxplot for Mental health rates in colonized and free countries.
+ggplot(newdata, aes(x = colonized, y = val, color = colonized)) + 
+  geom_boxplot(color = c("blue", "indianred")) +
+  labs(title = "Figure 3: Distribution of Mental Health Burden in Countries With and Without Colonial History",
+       x = "Colonial Occupation Status",
+       y = "Rate of Mental Health Disorders (per 100K)") +
+  theme_bw()
 ```
 
 
